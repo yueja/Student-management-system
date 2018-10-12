@@ -95,25 +95,6 @@ func main() {
 		r.Delete("/subscore", Score.SubScore) //删除学生成绩信息
 	})
 
-	//查询报表
-
 	// 绑定端口是8888
 	http.ListenAndServe(":8888", r)
 }
-
-/*
-	// 注册一个默认的路由器
-	router := gin.Default()
-
-	//专业信息管理
-	Major:= ProInformation.Make_db(DB)
-	router.Group("/major")
-	{
-		router.POST("/addmajor",Major.AddMajor)   //增加专业
-		router.GET("/browmajor",Major.BrowMajor)   //浏览所有专业
-		//router.POST("/upmajor",Major.UpMajor)   //编辑专业
-		//router.POST("/submajor",Major.SubMajor)   //删除专业
-	}
-	// 绑定端口是8888
-	router.Run(":6666")
-}*/
