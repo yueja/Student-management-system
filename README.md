@@ -1,5 +1,5 @@
-﻿# B2C-Mall-System
-B2C商城系统
+﻿# Student-management-system
+学生管理系统
 ====
 Content
 ____
