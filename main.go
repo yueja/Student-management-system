@@ -10,8 +10,8 @@ import (
 	"xiangmu/Student/API/StudentMation"
 	"xiangmu/Student/API/SubjectMation"
 	"xiangmu/Student/API/TeacherMation"
+	"xiangmu/Student/API/MajorMation"
 	"xiangmu/Student/DataConn"
-	"xiangmu/Student/StudentManagement"
 )
 
 func main() {
@@ -33,7 +33,7 @@ func main() {
 	})
 
 	//专业信息管理
-	Major := ProInformation.Make_db(DB)
+	Major := MajorMation.Make_db(DB)
 	r.Route("/major", func(r chi.Router) {
 		r.Post("/addmajor", Major.AddMajor)   //增加专业
 		r.Get("/browmajor", Major.BrowMajor)  //浏览所有专业

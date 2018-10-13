@@ -1,4 +1,4 @@
-package ProInformation
+package MajorMation
 
 import (
 		"github.com/go-chi/render"
