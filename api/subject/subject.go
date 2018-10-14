@@ -13,7 +13,7 @@ type SubjectAPi struct {
 	db *gorm.DB
 }
 
-func Make_db(db *gorm.DB) *SubjectAPi {
+func MakeDb(db *gorm.DB) *SubjectAPi {
 	DB := &SubjectAPi{db}
 	return DB
 }

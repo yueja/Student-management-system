@@ -13,7 +13,7 @@ type ClassAPi struct {
 	db *gorm.DB
 }
 
-func Make_db(db *gorm.DB) *ClassAPi {
+func MakeDb(db *gorm.DB) *ClassAPi {
 	DB := &ClassAPi{db}
 	return DB
 }

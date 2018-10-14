@@ -14,7 +14,7 @@ type UserAPi struct {
 	db *gorm.DB
 }
 
-func Make_db(db *gorm.DB) *UserAPi {
+func MakeDb(db *gorm.DB) *UserAPi {
 	DB := &UserAPi{db}
 	return DB
 }

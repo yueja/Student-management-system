@@ -21,7 +21,7 @@ func main() {
 	r := chi.NewRouter()
 
 	//用户管理
-	users := user.Make_db(DB)
+	users := user.MakeDb(DB)
 	r.Route("/user", func(r chi.Router) {
 		r.Post("/register_stu", users.RegisterStuUser) //注册学生用户
 		r.Post("/register_tea", users.RegisterTeaUser) //注册教师用户
@@ -33,7 +33,7 @@ func main() {
 	})
 
 	//专业信息管理
-	majors := major.Make_db(DB)
+	majors := major.MakeDb(DB)
 	r.Route("/major", func(r chi.Router) {
 		r.Post("/addition", majors.AddMajor) //增加专业
 		r.Get("/browse", majors.BrowMajor)   //浏览所有专业
@@ -42,7 +42,7 @@ func main() {
 	})
 
 	//班级信息管理
-	classes := class.Make_db(DB)
+	classes := class.MakeDb(DB)
 	r.Route("/class", func(r chi.Router) {
 		r.Post("/addition", classes.AddClass) //增加班级
 		r.Get("/browse", classes.BrowClass)   //浏览班级
@@ -51,7 +51,7 @@ func main() {
 	})
 
 	//学生信息管理
-	Students := student.Make_db(DB)
+	Students := student.MakeDb(DB)
 	r.Route("/student", func(r chi.Router) {
 		r.Post("/addition", Students.AddStudent) //增加学生信息
 		r.Get("/browse", Students.BrowStudent)   //浏览学生信息（按专业、班级、个人、全部学生）
@@ -60,7 +60,7 @@ func main() {
 	})
 
 	//课程信息管理
-	Subject := subject.Make_db(DB)
+	Subject := subject.MakeDb(DB)
 	r.Route("/subject", func(r chi.Router) {
 		r.Post("/addition", Subject.AddSubject) //增加课程信息
 		r.Get("/browse", Subject.BrowSubject)   //浏览课程信息（按名字、类型、全部）
@@ -69,7 +69,7 @@ func main() {
 	})
 
 	//教师信息管理
-	teachers := teacher.Make_db(DB)
+	teachers := teacher.MakeDb(DB)
 	r.Route("/teacher", func(r chi.Router) {
 		r.Post("/addition", teachers.AddTeacher) //增加教师信息
 		r.Get("/browse", teachers.BrowTeacher)   //浏览教师信息（按专业、个人、全部）
@@ -78,7 +78,7 @@ func main() {
 	})
 
 	//班级课程管理
-	class_subjects := class_subject.Make_db(DB)
+	class_subjects := class_subject.MakeDb(DB)
 	r.Route("/class_subject", func(r chi.Router) {
 		r.Post("/addition", class_subjects.AddCla_Sub) //增加班级课程信息
 		r.Get("/browse", class_subjects.BrowCla_Sub)   //浏览班级课程信息（按班级、课程、老师、所有）
@@ -87,7 +87,7 @@ func main() {
 	})
 
 	//成绩管理
-	scores := score.Make_db(DB)
+	scores := score.MakeDb(DB)
 	r.Route("/score", func(r chi.Router) {
 		r.Post("/addition", scores.AddScore) //增加学生成绩信息
 		r.Get("/browse", scores.BrowScore)   //浏览学生成绩信息（按班级、课程、学生查看）

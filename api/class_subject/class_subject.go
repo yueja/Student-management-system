@@ -12,7 +12,7 @@ type Cla2subAPi struct {
 	db *gorm.DB
 }
 
-func Make_db(db *gorm.DB) *Cla2subAPi {
+func MakeDb(db *gorm.DB) *Cla2subAPi {
 	DB := &Cla2subAPi{db}
 	return DB
 }

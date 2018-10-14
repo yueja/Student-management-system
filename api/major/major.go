@@ -12,7 +12,7 @@ type MajorAPi struct {
 	db *gorm.DB
 }
 
-func Make_db(db *gorm.DB) *MajorAPi {
+func MakeDb(db *gorm.DB) *MajorAPi {
 	DB := &MajorAPi{db}
 	return DB
 }

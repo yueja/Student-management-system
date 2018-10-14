@@ -13,7 +13,7 @@ type ScoreAPi struct {
 	db *gorm.DB
 }
 
-func Make_db(db *gorm.DB) *ScoreAPi {
+func MakeDb(db *gorm.DB) *ScoreAPi {
 	DB := &ScoreAPi{db}
 	return DB
 }
