@@ -3,11 +3,12 @@ package student
 import (
 	"github.com/go-chi/render"
 	"github.com/jinzhu/gorm"
+	"log"
 	"net/http"
 	"time"
-	"xiangmu/Student/structure_type"
 	"xiangmu/Student/data_conn"
-	)
+	"xiangmu/Student/structure_type"
+)
 
 type StudentAPi struct {
 	db *gorm.DB
@@ -26,9 +27,9 @@ func (student *StudentAPi) AddStudent(w http.ResponseWriter, r *http.Request) {
 	stuBirth := r.Form["stuBirth"][0]
 	className := r.Form["className"][0]
 
-	var classId,stuId int
+	var classId, stuId int
 	if stuNu == "" || stuName == "" || stuSex == "" || stuBirth == "" || className == "" {
-		s := structure_type.Things{"请将信息输入完整",false}
+		s := structure_type.Things{"请将信息输入完整", false}
 		render.JSON(w, r, s)
 		return
 	}
@@ -36,41 +37,41 @@ func (student *StudentAPi) AddStudent(w http.ResponseWriter, r *http.Request) {
 	//查询对应班级id
 	rows, err := student.db.Model(&data_conn.ClassInfo{}).Where("ClassName=?", className).Select("ClassId ").Rows()
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	for rows.Next() {
 		err = rows.Scan(&classId)
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 	if classId == 0 {
-		s := structure_type.Things{"班级信息输入错误，班级不存在",false}
+		s := structure_type.Things{"班级信息输入错误，班级不存在", false}
 		render.JSON(w, r, s)
 		return
 	}
 	//判断学生是否已经存在
 	rows, err = student.db.Model(&data_conn.StudentInfo{}).Where("StuNu=?", stuNu).Select("StuId").Rows()
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	for rows.Next() {
 		err = rows.Scan(&stuId)
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 	if stuId != 0 {
-		s := structure_type.Things{"本学生信息已存在",false}
+		s := structure_type.Things{"本学生信息已存在", false}
 		render.JSON(w, r, s)
 		return
 	}
 	t, _ := time.Parse("2006-01-02", stuBirth) //字符串转时间戳
 	err = student.db.Create(&data_conn.StudentInfo{StuNu: stuNu, StuName: stuName, StuSex: stuSex, StuBirth: t, ClaId: classId}).Error
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
-	s := structure_type.Things{"班级信息添加成功",true}
+	s := structure_type.Things{"班级信息添加成功", true}
 	render.JSON(w, r, s)
 }
 
@@ -82,29 +83,29 @@ func (student *StudentAPi) BrowStudent(w http.ResponseWriter, r *http.Request) {
 
 	s := structure_type.StudentTotal{}
 	tem := structure_type.StudentInfo{}
-	var majId,classId int
+	var majId, classId int
 	//按专业浏览学生信息
 	if majName != "" {
 		rows, err := student.db.Model(&data_conn.Major{}).Where("MajName=?", majName).Select("MajId").Rows()
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 		for rows.Next() {
 			err = rows.Scan(&majId)
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 		}
 		//查同专业的班级id
 		rows, err = student.db.Model(&data_conn.ClassInfo{}).Where("MajId=?", majId).Select("ClassId").Rows()
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 		var classId_1 []int
 		for rows.Next() {
 			err = rows.Scan(&classId)
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 			classId_1 = append(classId_1, classId)
 		}
@@ -114,28 +115,29 @@ func (student *StudentAPi) BrowStudent(w http.ResponseWriter, r *http.Request) {
 			var className_1 string
 			rows, err = student.db.Model(&data_conn.ClassInfo{}).Where("ClassId=?", classId_1[i]).Select("ClassName").Rows()
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 			for rows.Next() {
 				err = rows.Scan(&className_1)
 				if err != nil {
-					return
+					log.Printf("err:%s", err)
 				}
 			}
 			rows, err = student.db.Model(&data_conn.StudentInfo{}).Where("ClaId=?", classId_1[i]).Select(a).Rows()
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 			for rows.Next() {
 				err = rows.Scan(&tem.StuId, &tem.StuNu, &tem.StuName, &tem.StuSex, &tem.StuBirth, &tem.StuPic)
 				if err != nil {
-					return
+					log.Printf("err:%s", err)
 				}
 				tem.MajName = majName
 				tem.ClaName = className_1
 				s.StudentList = append(s.StudentList, tem)
 			}
 		}
+		s.IsSuccess = true
 		render.JSON(w, r, s)
 	}
 
@@ -146,40 +148,41 @@ func (student *StudentAPi) BrowStudent(w http.ResponseWriter, r *http.Request) {
 
 		rows, err := student.db.Model(&data_conn.ClassInfo{}).Where("ClassName=?", className).Select("ClassId,MajId").Rows()
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 		for rows.Next() {
 			err = rows.Scan(&classId, &majId)
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 		}
 		//查询专业名字
 		rows, err = student.db.Model(&data_conn.Major{}).Where("MajId=?", majId).Select("MajName").Rows()
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 		for rows.Next() {
 			err = rows.Scan(&majName_1)
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 		}
 		//查询学生信息
 		a := "StuId,StuNu,StuName,StuSex,StuBirth,StuPic"
 		rows, err = student.db.Model(&data_conn.StudentInfo{}).Where("ClaId=?", classId).Select(a).Rows()
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 		for rows.Next() {
-			err = rows.Scan(&tem.StuId,  &tem.StuNu, &tem.StuName, &tem.StuSex, &tem.StuBirth, &tem.StuPic)
+			err = rows.Scan(&tem.StuId, &tem.StuNu, &tem.StuName, &tem.StuSex, &tem.StuBirth, &tem.StuPic)
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 			tem.ClaName = className
 			tem.MajName = majName_1
 			s.StudentList = append(s.StudentList, tem)
 		}
+		s.IsSuccess = true
 		render.JSON(w, r, s)
 	}
 
@@ -190,38 +193,39 @@ func (student *StudentAPi) BrowStudent(w http.ResponseWriter, r *http.Request) {
 
 		rows, err := student.db.Model(&data_conn.StudentInfo{}).Where("StuName=?", stuName).Select(a).Rows()
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 		for rows.Next() {
-			err = rows.Scan(&tem.StuId, &tem.StuNu, &tem.StuName, &tem.StuSex, &tem.StuBirth, &tem.StuPic,&classId)
+			err = rows.Scan(&tem.StuId, &tem.StuNu, &tem.StuName, &tem.StuSex, &tem.StuBirth, &tem.StuPic, &classId)
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 		}
 
 		//查询班级名和专业id
 		rows, err = student.db.Model(&data_conn.ClassInfo{}).Where("ClassId=?", classId).Select("ClassName,MajId").Rows()
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 		for rows.Next() {
-			err = rows.Scan(&tem.ClaName,&majId)
+			err = rows.Scan(&tem.ClaName, &majId)
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 		}
 		//查询专业
 		rows, err = student.db.Model(&data_conn.Major{}).Where("MajId=?", majId).Select("MajName").Rows()
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 		for rows.Next() {
 			err = rows.Scan(&tem.MajName)
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 		}
 		s.StudentList = append(s.StudentList, tem)
+		s.IsSuccess = true
 		render.JSON(w, r, s)
 	}
 
@@ -229,38 +233,39 @@ func (student *StudentAPi) BrowStudent(w http.ResponseWriter, r *http.Request) {
 	if majName == "" && className == "" && stuName == "" {
 		rows, err := student.db.Model(&data_conn.StudentInfo{}).Select("StuId,StuNu,StuName,StuSex,StuBirth,StuPic,ClaId").Rows()
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 		for rows.Next() {
 			err = rows.Scan(&tem.StuId, &tem.StuNu, &tem.StuName, &tem.StuSex, &tem.StuBirth, &tem.StuPic, &tem.ClaName)
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 			s.StudentList = append(s.StudentList, tem)
 		}
 		for i := 0; i < len(s.StudentList); i++ {
 			rows, err := student.db.Model(&data_conn.ClassInfo{}).Where("ClassId=?", s.StudentList[i].ClaName).Select("ClassName,MajId").Rows()
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 			var majId int
 			for rows.Next() {
 				err = rows.Scan(&s.StudentList[i].ClaName, &majId)
 				if err != nil {
-					return
+					log.Printf("err:%s", err)
 				}
 			}
 			rows, err = student.db.Model(&data_conn.Major{}).Where("MajId=?", majId).Select("MajName").Rows()
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 			for rows.Next() {
 				err = rows.Scan(&s.StudentList[i].MajName)
 				if err != nil {
-					return
+					log.Printf("err:%s", err)
 				}
 			}
 		}
+		s.IsSuccess = true
 		render.JSON(w, r, s)
 	}
 }
@@ -277,21 +282,21 @@ func (student *StudentAPi) UpClass(w http.ResponseWriter, r *http.Request) {
 	if stuNu != "" {
 		err := student.db.Model(&data_conn.StudentInfo{}).Where("StuId=?", stuId).Update(&data_conn.StudentInfo{StuNu: stuNu}).Error
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 
 	if stuName != "" {
 		err := student.db.Model(&data_conn.StudentInfo{}).Where("StuId=?", stuId).Update(&data_conn.StudentInfo{StuName: stuName}).Error
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 
 	if stuSex != "" {
 		err := student.db.Model(&data_conn.StudentInfo{}).Where("StuId=?", stuId).Update(&data_conn.StudentInfo{StuSex: stuSex}).Error
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 
@@ -299,28 +304,28 @@ func (student *StudentAPi) UpClass(w http.ResponseWriter, r *http.Request) {
 		t, _ := time.Parse("2006-01-02", stuBirth) //字符串转时间戳
 		err := student.db.Model(&data_conn.StudentInfo{}).Where("StuId=?", stuId).Update(&data_conn.StudentInfo{StuBirth: t}).Error
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 
 	if className != "" {
 		rows, err := student.db.Model(&data_conn.ClassInfo{}).Where("ClassName=?", className).Select("ClassId").Rows()
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 		var classId int
 		for rows.Next() {
 			err = rows.Scan(&classId)
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 		}
 		err = student.db.Model(&data_conn.StudentInfo{}).Where("StuId=?", stuId).Update(&data_conn.StudentInfo{ClaId: classId}).Error
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
-	s := structure_type.Things{"更新学生信息成功",true}
+	s := structure_type.Things{"更新学生信息成功", true}
 	render.JSON(w, r, s)
 }
 
@@ -330,8 +335,8 @@ func (student *StudentAPi) DelStudent(w http.ResponseWriter, r *http.Request) {
 
 	err := student.db.Model(&data_conn.StudentInfo{}).Where("StuId=?", stuId).Delete(&data_conn.StudentInfo{}).Error
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
-	s := structure_type.Things{"删除学生信息成功",true}
+	s := structure_type.Things{"删除学生信息成功", true}
 	render.JSON(w, r, s)
 }

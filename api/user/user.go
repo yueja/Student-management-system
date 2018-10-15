@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"github.com/go-chi/render"
 	"github.com/jinzhu/gorm"
+	"github.com/labstack/gommon/log"
 	"net/http"
-	"study0/StructureType"
 	"xiangmu/Student/data_conn"
 	"xiangmu/Student/structure_type"
 )
@@ -34,12 +34,12 @@ func (user *UserAPi) RegisterStuUser(w http.ResponseWriter, r *http.Request) {
 	//判断该学号是否已经注册过
 	rows, err := user.db.Table("UserInfos").Where("UserName=?", userNu).Select("UserId").Rows()
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	for rows.Next() {
 		err = rows.Scan(&userId)
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 	if userId != 0 {
@@ -51,23 +51,23 @@ func (user *UserAPi) RegisterStuUser(w http.ResponseWriter, r *http.Request) {
 	//判断学号是否存在
 	rows, err = user.db.Table("StudentInfos").Where("StuNu=?", userNu).Select("Stu_id").Rows()
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	for rows.Next() {
 		err = rows.Scan(&stuId)
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 	if stuId == 0 {
-		s := StructureType.Things{"该学号不存在"}
+		s := structure_type.Things{"该学号不存在", false}
 		render.JSON(w, r, s)
 		return
 	}
 
 	err = user.db.Create(&data_conn.UserInfo{UserName: userNu, UserPwd: userPwd, RoleName: "学生"}).Error
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	s := structure_type.Things{"注册学生用户信息成功", false}
 	render.JSON(w, r, s)
@@ -88,12 +88,12 @@ func (user *UserAPi) RegisterTeaUser(w http.ResponseWriter, r *http.Request) {
 	//判断该教师是否已经注册过
 	rows, err := user.db.Table("UserInfos").Where("UserName=?", userName).Select("UserId").Rows()
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	for rows.Next() {
 		err = rows.Scan(&userId)
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 	if userId != 0 {
@@ -104,12 +104,12 @@ func (user *UserAPi) RegisterTeaUser(w http.ResponseWriter, r *http.Request) {
 
 	rows, err = user.db.Table("TeacherInfos").Where("TecName=?", userName).Select("TecId").Rows()
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	for rows.Next() {
 		err = rows.Scan(&tecId)
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 	if tecId == 0 {
@@ -120,7 +120,7 @@ func (user *UserAPi) RegisterTeaUser(w http.ResponseWriter, r *http.Request) {
 
 	err = user.db.Create(&data_conn.UserInfo{UserName: userName, UserPwd: userPwd, RoleName: "教师"}).Error
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	s := structure_type.Things{"注册教师用户信息成功", true}
 	render.JSON(w, r, s)
@@ -140,12 +140,12 @@ func (user *UserAPi) LoginStuUser(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := user.db.Model(&data_conn.UserInfo{}).Where("UserName=? and RoleName=?", userName, "学生").Select("UserPwd").Rows()
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	for rows.Next() {
 		err = rows.Scan(&userPwd_1)
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 	if userPwd_1 == "" {
@@ -176,12 +176,12 @@ func (user *UserAPi) LoginTeaUser(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := user.db.Model(&data_conn.UserInfo{}).Where("UserName=? and RoleName=?", userName, "教师").Select("UserPwd").Rows()
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	for rows.Next() {
 		err = rows.Scan(&userPwd_1)
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 	if userPwd_1 == "" {
@@ -213,12 +213,12 @@ func (user *UserAPi) UserPwdModify(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := user.db.Model(&data_conn.UserInfo{}).Where("UserName=?", userName).Select("UserPwd").Rows()
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	for rows.Next() {
 		err = rows.Scan(&userPwd)
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 	if userPwd != oldUserPwd {
@@ -228,7 +228,7 @@ func (user *UserAPi) UserPwdModify(w http.ResponseWriter, r *http.Request) {
 	}
 	err = user.db.Model(&data_conn.UserInfo{}).Where("UserName=?", userName).Update(&data_conn.UserInfo{UserPwd: newUserPwd}).Error
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	s := structure_type.Things{"密码修改成功", true}
 	render.JSON(w, r, s)
@@ -252,15 +252,16 @@ func (user *UserAPi) BrowUser(w http.ResponseWriter, r *http.Request) {
 		rows, err = user.db.Model(&data_conn.UserInfo{}).Select("UserId,UserName,UserPwd,RoleName").Rows()
 	}
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	for rows.Next() {
 		err = rows.Scan(&tem.UserId, &tem.UserName, &tem.UserPwd, &tem.RoleName)
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 		u.UserInfoList = append(u.UserInfoList, tem)
 	}
+	u.IsSuccess = true
 	render.JSON(w, r, u)
 }
 
@@ -270,7 +271,7 @@ func (user *UserAPi) DelUser(w http.ResponseWriter, r *http.Request) {
 
 	err := user.db.Model(&data_conn.UserInfo{}).Where("UserId=?", userId).Delete(&data_conn.UserInfo{}).Error
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	s := structure_type.Things{"删除用户信息成功", true}
 	render.JSON(w, r, s)

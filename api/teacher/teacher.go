@@ -3,6 +3,7 @@ package teacher
 import (
 	"github.com/go-chi/render"
 	"github.com/jinzhu/gorm"
+	"log"
 	"net/http"
 	"time"
 	"xiangmu/Student/data_conn"
@@ -36,12 +37,12 @@ func (teacher *TeacherAPi) AddTeacher(w http.ResponseWriter, r *http.Request) {
 	//判断教师信息是否已经存在
 	rows, err := teacher.db.Model(&data_conn.TeacherInfo{}).Where("TecName=?", tecName).Select("TecId").Rows()
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	for rows.Next() {
 		err = rows.Scan(&tecId)
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 	if tecId != 0 {
@@ -53,12 +54,12 @@ func (teacher *TeacherAPi) AddTeacher(w http.ResponseWriter, r *http.Request) {
 	//查看该专业是否存在
 	rows, err = teacher.db.Model(&data_conn.Major{}).Where("MajName=?", tecMajor).Select("MajId").Rows()
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	for rows.Next() {
 		err = rows.Scan(&majId)
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 	if majId == 0 {
@@ -68,7 +69,7 @@ func (teacher *TeacherAPi) AddTeacher(w http.ResponseWriter, r *http.Request) {
 	}
 	err = teacher.db.Create(&data_conn.TeacherInfo{TecName: tecName, TecSex: tecSex, TecBirth: t, TecMajor: tecMajor, TecPhone: tecPhone}).Error
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	s := structure_type.Things{"添加教师信息成功", true}
 	render.JSON(w, r, s)
@@ -87,15 +88,16 @@ func (teacher *TeacherAPi) BrowTeacher(w http.ResponseWriter, r *http.Request) {
 	if tecMajor != "" {
 		rows, err := teacher.db.Model(&data_conn.TeacherInfo{}).Where("TecMajor=?", tecMajor).Select(a).Rows()
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 		for rows.Next() {
 			err = rows.Scan(&tem.TecId, &tem.TecName, &tem.TecSex, &tem.TecBirth, &tem.TecMajor, &tem.TecPhone)
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 			s.TeacherList = append(s.TeacherList, tem)
 		}
+		s.IsSuccess = true
 		render.JSON(w, r, s)
 	}
 
@@ -103,15 +105,16 @@ func (teacher *TeacherAPi) BrowTeacher(w http.ResponseWriter, r *http.Request) {
 	if tecName != "" {
 		rows, err := teacher.db.Model(&data_conn.TeacherInfo{}).Where("TecName=?", tecName).Select(a).Rows()
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 		for rows.Next() {
 			err = rows.Scan(&tem.TecId, &tem.TecName, &tem.TecSex, &tem.TecBirth, &tem.TecMajor, &tem.TecPhone)
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 			s.TeacherList = append(s.TeacherList, tem)
 		}
+		s.IsSuccess = true
 		render.JSON(w, r, s)
 	}
 
@@ -119,15 +122,16 @@ func (teacher *TeacherAPi) BrowTeacher(w http.ResponseWriter, r *http.Request) {
 	if tecMajor == "" && tecName == "" {
 		rows, err := teacher.db.Model(&data_conn.TeacherInfo{}).Select(a).Rows()
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 		for rows.Next() {
 			err = rows.Scan(&tem.TecId, &tem.TecName, &tem.TecSex, &tem.TecBirth, &tem.TecMajor, &tem.TecPhone)
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 			s.TeacherList = append(s.TeacherList, tem)
 		}
+		s.IsSuccess = true
 		render.JSON(w, r, s)
 	}
 }
@@ -144,14 +148,14 @@ func (teacher *TeacherAPi) UpTeacher(w http.ResponseWriter, r *http.Request) {
 	if tecName != "" {
 		err := teacher.db.Model(&data_conn.TeacherInfo{}).Where("TecId=?", tecId).Update(&data_conn.TeacherInfo{TecName: tecName}).Error
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 
 	if tecSex != "" {
 		err := teacher.db.Model(&data_conn.TeacherInfo{}).Where("TecId=?", tecId).Update(&data_conn.TeacherInfo{TecSex: tecSex}).Error
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 
@@ -159,21 +163,21 @@ func (teacher *TeacherAPi) UpTeacher(w http.ResponseWriter, r *http.Request) {
 		t, _ := time.Parse("2006-01-02", tecBirth) //字符串转时间戳
 		err := teacher.db.Model(&data_conn.TeacherInfo{}).Where("TecId=?", tecId).Update(&data_conn.TeacherInfo{TecBirth: t}).Error
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 
 	if tecMajor != "" {
 		err := teacher.db.Model(&data_conn.TeacherInfo{}).Where("TecId=?", tecId).Update(&data_conn.TeacherInfo{TecMajor: tecMajor}).Error
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 
 	if tecPhone != "" {
 		err := teacher.db.Model(&data_conn.TeacherInfo{}).Where("TecId=?", tecId).Update(&data_conn.TeacherInfo{TecPhone: tecPhone}).Error
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 	s := structure_type.Things{"更新教师信息成功", true}
@@ -186,7 +190,7 @@ func (teacher *TeacherAPi) DelTeacher(w http.ResponseWriter, r *http.Request) {
 
 	err := teacher.db.Model(&data_conn.TeacherInfo{}).Where("TecId=?", tecId).Delete(&data_conn.TeacherInfo{}).Error
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	s := structure_type.Things{"删除教师信息成功", true}
 	render.JSON(w, r, s)

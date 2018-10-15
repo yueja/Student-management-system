@@ -3,6 +3,7 @@ package subject
 import (
 	"github.com/go-chi/render"
 	"github.com/jinzhu/gorm"
+	"log"
 	"net/http"
 	"strconv"
 	"xiangmu/Student/data_conn"
@@ -33,12 +34,12 @@ func (subject *SubjectAPi) AddSubject(w http.ResponseWriter, r *http.Request) {
 	//判断课程是否已经存在
 	rows, err := subject.db.Model(&data_conn.Subject{}).Where("SubName=?", subName).Select("SubId").Rows()
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	for rows.Next() {
 		err = rows.Scan(&subId)
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 	if subId != 0 {
@@ -48,11 +49,11 @@ func (subject *SubjectAPi) AddSubject(w http.ResponseWriter, r *http.Request) {
 	}
 	subTime, err := strconv.Atoi(subTimes)
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	err = subject.db.Create(&data_conn.Subject{SubName: subName, SubType: subType, SubTimes: subTime}).Error
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	s := structure_type.Things{"课程信息添加成功", true}
 	render.JSON(w, r, s)
@@ -70,30 +71,32 @@ func (subject *SubjectAPi) BrowSubject(w http.ResponseWriter, r *http.Request) {
 	if subName != "" && subType == "" {
 		rows, err := subject.db.Model(&data_conn.Subject{}).Where("SubName=?", subName).Select("SubId,SubName,SubType,SubTimes").Rows()
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 		for rows.Next() {
 			err = rows.Scan(&tem.SubId, &tem.SubName, &tem.SubType, &tem.SubTimes)
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 			s.SubjectList = append(s.SubjectList, tem)
 		}
+		s.IsSuccess = true
 		render.JSON(w, r, s)
 	}
 	//按课程类型搜索
 	if subName == "" && subType != "" {
 		rows, err := subject.db.Model(&data_conn.Subject{}).Where("SubType=?", subType).Select("SubId,SubName,SubType,SubTimes").Rows()
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 		for rows.Next() {
 			err = rows.Scan(&tem.SubId, &tem.SubName, &tem.SubType, &tem.SubTimes)
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 			s.SubjectList = append(s.SubjectList, tem)
 		}
+		s.IsSuccess = true
 		render.JSON(w, r, s)
 	}
 }
@@ -108,25 +111,25 @@ func (subject *SubjectAPi) UpSubject(w http.ResponseWriter, r *http.Request) {
 	if subName != "" {
 		err := subject.db.Model(&data_conn.Subject{}).Where("SubId=?", subId).Update(&data_conn.Subject{SubName: subName}).Error
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 
 	if subType != "" {
 		err := subject.db.Model(&data_conn.Subject{}).Where("SubId=?", subId).Update(&data_conn.Subject{SubType: subType}).Error
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 
 	if subTimes != "" {
 		subTime, err := strconv.Atoi(subTimes)
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 		err = subject.db.Model(&data_conn.Subject{}).Where("SubId=?", subId).Update(&data_conn.Subject{SubTimes: subTime}).Error
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 	s := structure_type.Things{"更新课程信息成功", true}
@@ -139,7 +142,7 @@ func (subject *SubjectAPi) DelSubject(w http.ResponseWriter, r *http.Request) {
 
 	err := subject.db.Model(&data_conn.Subject{}).Where("SubId=?", subId).Delete(&data_conn.Subject{}).Error
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	s := structure_type.Things{"删除课程信息成功", true}
 	render.JSON(w, r, s)

@@ -17,6 +17,7 @@ type Major struct {
 
 type MajorTotal struct {
 	MajorList []Major
+	IsSuccess bool
 }
 
 type ClassInfo struct {
@@ -33,6 +34,7 @@ type Class struct {
 }
 type ClassTotal struct {
 	ClassList []Class
+	IsSuccess bool
 }
 
 type StudentInfo struct {
@@ -47,6 +49,7 @@ type StudentInfo struct {
 }
 type StudentTotal struct {
 	StudentList []StudentInfo
+	IsSuccess bool
 }
 
 type Subject struct {
@@ -57,6 +60,7 @@ type Subject struct {
 }
 type SubjectTotal struct {
 	SubjectList []Subject
+	IsSuccess bool
 }
 
 type TeacherInfo struct {
@@ -70,6 +74,7 @@ type TeacherInfo struct {
 
 type TeacherTotal struct {
 	TeacherList []TeacherInfo
+	IsSuccess bool
 }
 
 type Cla2sub struct {
@@ -80,6 +85,7 @@ type Cla2sub struct {
 }
 type Cla2subTotal struct {
 	Cla2subList []Cla2sub
+	IsSuccess bool
 }
 
 type UserInfo struct {
@@ -90,6 +96,7 @@ type UserInfo struct {
 }
 type UserInfoTotal struct {
 	UserInfoList []UserInfo
+	IsSuccess bool
 }
 
 type Score struct {
@@ -104,4 +111,5 @@ type Score struct {
 
 type ScoreTotal struct {
 	ScoreList []Score
+	IsSuccess bool
 }

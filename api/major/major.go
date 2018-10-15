@@ -3,6 +3,7 @@ package major
 import (
 	"github.com/go-chi/render"
 	"github.com/jinzhu/gorm"
+	"log"
 	"net/http"
 	"xiangmu/Student/data_conn"
 	"xiangmu/Student/structure_type"
@@ -32,12 +33,12 @@ func (major *MajorAPi) AddMajor(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := major.db.Model(&data_conn.Major{}).Where("MajName=?", majName).Select("MajId").Rows()
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	for rows.Next() {
 		err = rows.Scan(&majId)
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 	if majId != 0 {
@@ -47,7 +48,7 @@ func (major *MajorAPi) AddMajor(w http.ResponseWriter, r *http.Request) {
 	}
 	err = major.db.Create(&data_conn.Major{MajName: majName, MajPrin: majPrin, MajLink: majLink, MajPhone: majPhone}).Error
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	s := structure_type.Things{"专业信息添加成功", true}
 	render.JSON(w, r, s)
@@ -62,30 +63,32 @@ func (major *MajorAPi) BrowMajor(w http.ResponseWriter, r *http.Request) {
 	if majName == "" {
 		rows, err := major.db.Model(&data_conn.Major{}).Select("MajName,majPrin,majLink,majPhone").Rows()
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 		for rows.Next() {
 			err = rows.Scan(&tem.MajName, &tem.MajPrin, &tem.MajLink, &tem.MajPhone)
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 			m.MajorList = append(m.MajorList, tem)
 		}
+		m.IsSuccess = true
 		render.JSON(w, r, m)
 	}
 
 	if majName != "" {
 		rows, err := major.db.Model(&data_conn.Major{}).Where("Maj_name=?", majName).Select("majName,majPrin,majLink,majPhone").Rows()
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 		for rows.Next() {
 			err = rows.Scan(&tem.MajName, &tem.MajPrin, &tem.MajLink, &tem.MajPhone)
 			if err != nil {
-				return
+				log.Printf("err:%s", err)
 			}
 			m.MajorList = append(m.MajorList, tem)
 		}
+		m.IsSuccess = true
 		render.JSON(w, r, m)
 	}
 }
@@ -101,28 +104,28 @@ func (major *MajorAPi) UpMajor(w http.ResponseWriter, r *http.Request) {
 	if majName != "" {
 		err := major.db.Model(&data_conn.Major{}).Where("MajId=?", majId).Update(&data_conn.Major{MajName: majName}).Error
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 
 	if majPrin != "" {
 		err := major.db.Model(&data_conn.Major{}).Where("MajId=?", majId).Update(&data_conn.Major{MajPrin: majPrin}).Error
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 
 	if majLink != "" {
 		err := major.db.Model(&data_conn.Major{}).Where("MajId=?", majId).Update(&data_conn.Major{MajLink: majLink}).Error
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 
 	if majPhone != "" {
 		err := major.db.Model(&data_conn.Major{}).Where("MajId=?", majId).Update(&data_conn.Major{MajPhone: majPhone}).Error
 		if err != nil {
-			return
+			log.Printf("err:%s", err)
 		}
 	}
 	s := structure_type.Things{"更新专业信息成功", true}
@@ -135,7 +138,7 @@ func (major *MajorAPi) DelMajor(w http.ResponseWriter, r *http.Request) {
 
 	err := major.db.Model(&data_conn.Major{}).Where("MajId=?", majId).Delete(&data_conn.Major{}).Error
 	if err != nil {
-		return
+		log.Printf("err:%s", err)
 	}
 	s := structure_type.Things{"删除专业信息成功", true}
 	render.JSON(w, r, s)
