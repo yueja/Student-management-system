@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	DB := data_conn.DB_Mysql()
+	DB := data_conn.MakeMysqlDB()
 	defer DB.Close()
 	r := chi.NewRouter()
 

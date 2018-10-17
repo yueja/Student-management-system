@@ -80,7 +80,7 @@ type UserInfo struct {
 	RoleName string `gorm:"not null"`                   //角色名字
 }
 
-func DB_Mysql() *gorm.DB {
+func MakeMysqlDB() *gorm.DB {
 	db, err := gorm.Open("mysql", "root:root123@(127.0.0.1:3306)/stu?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		panic("连接数据库失败")
