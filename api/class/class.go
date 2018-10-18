@@ -19,7 +19,7 @@ func MakeDb(db *gorm.DB) *ClassAPi {
 	return DB
 }
 
-func (class *ClassAPi) AddClass(w http.ResponseWriter, r *http.Request) {
+func (c *ClassAPi) AddClass(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	className := r.Form["className"][0]
 	classTec := r.Form["classTec"][0]
@@ -32,7 +32,7 @@ func (class *ClassAPi) AddClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//查询对应专业id
-	rows, err := class.db.Model(&data_conn.Major{}).Where("MajName=?", majName).Select("MajId").Rows()
+	rows, err := c.db.Model(&data_conn.Major{}).Where("MajName=?", majName).Select("MajId").Rows()
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
@@ -44,7 +44,7 @@ func (class *ClassAPi) AddClass(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//判断班级是否已经存在
-	rows, err = class.db.Model(&data_conn.ClassInfo{}).Where("ClassName=?", className).Select("ClassId").Rows()
+	rows, err = c.db.Model(&data_conn.ClassInfo{}).Where("ClassName=?", className).Select("ClassId").Rows()
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
@@ -59,7 +59,7 @@ func (class *ClassAPi) AddClass(w http.ResponseWriter, r *http.Request) {
 		render.JSON(w, r, s)
 		return
 	}
-	err = class.db.Create(&data_conn.ClassInfo{ClassName: className, ClassTec: classTec, MajId: majId}).Error
+	err = c.db.Create(&data_conn.ClassInfo{ClassName: className, ClassTec: classTec, MajId: majId}).Error
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
@@ -67,16 +67,16 @@ func (class *ClassAPi) AddClass(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, s)
 }
 
-func (class *ClassAPi) BrowClass(w http.ResponseWriter, r *http.Request) {
+func (c *ClassAPi) BrowClass(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	m := structure_type.ClassTotal{}
+	s := structure_type.ClassTotal{}
 	tem := structure_type.Class{}
 
 	className := r.Form["className"][0]
 	var majId int
 
 	if className == "" {
-		rows, err := class.db.Model(&data_conn.ClassInfo{}).Select("ClassName,ClassTec,MajId").Rows()
+		rows, err := c.db.Model(&data_conn.ClassInfo{}).Select("ClassName,ClassTec,MajId").Rows()
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -87,16 +87,16 @@ func (class *ClassAPi) BrowClass(w http.ResponseWriter, r *http.Request) {
 				log.Printf("err:%s", err)
 			}
 			tem.MajName = strconv.Itoa(majId)
-			m.ClassList = append(m.ClassList, tem)
+			s.ClassList = append(s.ClassList, tem)
 		}
 		//查询班级对应的专业
-		for i := 0; i < len(m.ClassList); i++ {
-			rows, err = class.db.Model(&data_conn.Major{}).Where("MajId=?", m.ClassList[i].MajName).Select("MajName").Rows()
+		for i := 0; i < len(s.ClassList); i++ {
+			rows, err = c.db.Model(&data_conn.Major{}).Where("MajId=?", s.ClassList[i].MajName).Select("MajName").Rows()
 			if err != nil {
 				log.Printf("err:%s", err)
 			}
 			for rows.Next() {
-				err = rows.Scan(&m.ClassList[i].MajName)
+				err = rows.Scan(&s.ClassList[i].MajName)
 				if err != nil {
 					log.Printf("err:%s", err)
 				}
@@ -105,7 +105,7 @@ func (class *ClassAPi) BrowClass(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if className != "" {
-		rows, err := class.db.Model(&data_conn.ClassInfo{}).Where("ClassName=?", className).Select("ClassTec,MajId").Rows()
+		rows, err := c.db.Model(&data_conn.ClassInfo{}).Where("ClassName=?", className).Select("ClassTec,MajId").Rows()
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -115,7 +115,7 @@ func (class *ClassAPi) BrowClass(w http.ResponseWriter, r *http.Request) {
 				log.Printf("err:%s", err)
 			}
 			//查询班级对应的专业
-			rows, err = class.db.Model(&data_conn.Major{}).Where("MajId=?", majId).Select("MajName").Rows()
+			rows, err = c.db.Model(&data_conn.Major{}).Where("MajId=?", majId).Select("MajName").Rows()
 			if err != nil {
 				log.Printf("err:%s", err)
 			}
@@ -127,13 +127,13 @@ func (class *ClassAPi) BrowClass(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		tem.ClassName = className
-		m.ClassList = append(m.ClassList, tem)
+		s.ClassList = append(s.ClassList, tem)
 	}
-	m.IsSuccess = true
-	render.JSON(w, r, m)
+	s.IsSuccess = true
+	render.JSON(w, r, s)
 }
 
-func (class *ClassAPi) UpClass(w http.ResponseWriter, r *http.Request) {
+func (c *ClassAPi) UpClass(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	classId := r.Form["classId"][0]
 	className := r.Form["className"][0]
@@ -141,14 +141,14 @@ func (class *ClassAPi) UpClass(w http.ResponseWriter, r *http.Request) {
 	majName := r.Form["majName"][0]
 
 	if className != "" {
-		err := class.db.Model(&data_conn.ClassInfo{}).Where("ClassId=?", classId).Update(&data_conn.ClassInfo{ClassName: className}).Error
+		err := c.db.Model(&data_conn.ClassInfo{}).Where("ClassId=?", classId).Update(&data_conn.ClassInfo{ClassName: className}).Error
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
 	}
 
 	if classTec != "" {
-		err := class.db.Model(&data_conn.ClassInfo{}).Where("ClassId=?", classId).Update(&data_conn.ClassInfo{ClassTec: classTec}).Error
+		err := c.db.Model(&data_conn.ClassInfo{}).Where("ClassId=?", classId).Update(&data_conn.ClassInfo{ClassTec: classTec}).Error
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -156,7 +156,7 @@ func (class *ClassAPi) UpClass(w http.ResponseWriter, r *http.Request) {
 
 	if majName != "" {
 		var majId int
-		rows, err := class.db.Model(&data_conn.Major{}).Where("MajName=?", majName).Select("MajId").Rows()
+		rows, err := c.db.Model(&data_conn.Major{}).Where("MajName=?", majName).Select("MajId").Rows()
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -166,7 +166,7 @@ func (class *ClassAPi) UpClass(w http.ResponseWriter, r *http.Request) {
 				log.Printf("err:%s", err)
 			}
 		}
-		err = class.db.Model(&data_conn.ClassInfo{}).Where("ClassId=?", classId).Update(&data_conn.ClassInfo{MajId: majId}).Error
+		err = c.db.Model(&data_conn.ClassInfo{}).Where("ClassId=?", classId).Update(&data_conn.ClassInfo{MajId: majId}).Error
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -175,11 +175,11 @@ func (class *ClassAPi) UpClass(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, s)
 }
 
-func (class *ClassAPi) DelClass(w http.ResponseWriter, r *http.Request) {
+func (c *ClassAPi) DelClass(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	classId := r.Form["classId"][0]
 
-	err := class.db.Model(&data_conn.ClassInfo{}).Where("ClassId=?", classId).Delete(&data_conn.ClassInfo{}).Error
+	err := c.db.Model(&data_conn.ClassInfo{}).Where("ClassId=?", classId).Delete(&data_conn.ClassInfo{}).Error
 	if err != nil {
 		log.Printf("err:%s", err)
 	}

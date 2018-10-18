@@ -17,7 +17,7 @@ func MakeDb(db *gorm.DB) *MajorAPi {
 	DB := &MajorAPi{db}
 	return DB
 }
-func (major *MajorAPi) AddMajor(w http.ResponseWriter, r *http.Request) {
+func (m *MajorAPi) AddMajor(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	majName := r.Form["majName"][0]
 	majPrin := r.Form["majPrin"][0]
@@ -31,7 +31,7 @@ func (major *MajorAPi) AddMajor(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := major.db.Model(&data_conn.Major{}).Where("MajName=?", majName).Select("MajId").Rows()
+	rows, err := m.db.Model(&data_conn.Major{}).Where("MajName=?", majName).Select("MajId").Rows()
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
@@ -46,7 +46,7 @@ func (major *MajorAPi) AddMajor(w http.ResponseWriter, r *http.Request) {
 		render.JSON(w, r, s)
 		return
 	}
-	err = major.db.Create(&data_conn.Major{MajName: majName, MajPrin: majPrin, MajLink: majLink, MajPhone: majPhone}).Error
+	err = m.db.Create(&data_conn.Major{MajName: majName, MajPrin: majPrin, MajLink: majLink, MajPhone: majPhone}).Error
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
@@ -54,14 +54,14 @@ func (major *MajorAPi) AddMajor(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, s)
 }
 
-func (major *MajorAPi) BrowMajor(w http.ResponseWriter, r *http.Request) {
+func (m *MajorAPi) BrowMajor(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	m := structure_type.MajorTotal{}
+	s := structure_type.MajorTotal{}
 	tem := structure_type.Major{}
 	majName := r.Form["majName"][0]
 
 	if majName == "" {
-		rows, err := major.db.Model(&data_conn.Major{}).Select("MajName,majPrin,majLink,majPhone").Rows()
+		rows, err := m.db.Model(&data_conn.Major{}).Select("MajName,majPrin,majLink,majPhone").Rows()
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -70,14 +70,14 @@ func (major *MajorAPi) BrowMajor(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Printf("err:%s", err)
 			}
-			m.MajorList = append(m.MajorList, tem)
+			s.MajorList = append(s.MajorList, tem)
 		}
-		m.IsSuccess = true
-		render.JSON(w, r, m)
+		s.IsSuccess = true
+		render.JSON(w, r, s)
 	}
 
 	if majName != "" {
-		rows, err := major.db.Model(&data_conn.Major{}).Where("Maj_name=?", majName).Select("majName,majPrin,majLink,majPhone").Rows()
+		rows, err := m.db.Model(&data_conn.Major{}).Where("Maj_name=?", majName).Select("majName,majPrin,majLink,majPhone").Rows()
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -86,14 +86,14 @@ func (major *MajorAPi) BrowMajor(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Printf("err:%s", err)
 			}
-			m.MajorList = append(m.MajorList, tem)
+			s.MajorList = append(s.MajorList, tem)
 		}
-		m.IsSuccess = true
-		render.JSON(w, r, m)
+		s.IsSuccess = true
+		render.JSON(w, r,s)
 	}
 }
 
-func (major *MajorAPi) UpMajor(w http.ResponseWriter, r *http.Request) {
+func (m *MajorAPi) UpMajor(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	majId := r.Form["majId"][0]
 	majName := r.Form["majName"][0]
@@ -102,28 +102,28 @@ func (major *MajorAPi) UpMajor(w http.ResponseWriter, r *http.Request) {
 	majPhone := r.Form["majPhone"][0]
 
 	if majName != "" {
-		err := major.db.Model(&data_conn.Major{}).Where("MajId=?", majId).Update(&data_conn.Major{MajName: majName}).Error
+		err := m.db.Model(&data_conn.Major{}).Where("MajId=?", majId).Update(&data_conn.Major{MajName: majName}).Error
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
 	}
 
 	if majPrin != "" {
-		err := major.db.Model(&data_conn.Major{}).Where("MajId=?", majId).Update(&data_conn.Major{MajPrin: majPrin}).Error
+		err := m.db.Model(&data_conn.Major{}).Where("MajId=?", majId).Update(&data_conn.Major{MajPrin: majPrin}).Error
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
 	}
 
 	if majLink != "" {
-		err := major.db.Model(&data_conn.Major{}).Where("MajId=?", majId).Update(&data_conn.Major{MajLink: majLink}).Error
+		err := m.db.Model(&data_conn.Major{}).Where("MajId=?", majId).Update(&data_conn.Major{MajLink: majLink}).Error
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
 	}
 
 	if majPhone != "" {
-		err := major.db.Model(&data_conn.Major{}).Where("MajId=?", majId).Update(&data_conn.Major{MajPhone: majPhone}).Error
+		err := m.db.Model(&data_conn.Major{}).Where("MajId=?", majId).Update(&data_conn.Major{MajPhone: majPhone}).Error
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -132,11 +132,11 @@ func (major *MajorAPi) UpMajor(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, s)
 }
 
-func (major *MajorAPi) DelMajor(w http.ResponseWriter, r *http.Request) {
+func (m *MajorAPi) DelMajor(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	majId := r.Form["majId"][0]
 
-	err := major.db.Model(&data_conn.Major{}).Where("MajId=?", majId).Delete(&data_conn.Major{}).Error
+	err := m.db.Model(&data_conn.Major{}).Where("MajId=?", majId).Delete(&data_conn.Major{}).Error
 	if err != nil {
 		log.Printf("err:%s", err)
 	}

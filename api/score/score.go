@@ -18,7 +18,7 @@ func MakeDb(db *gorm.DB) *ScoreAPi {
 	DB := &ScoreAPi{db}
 	return DB
 }
-func (score *ScoreAPi) AddScore(w http.ResponseWriter, r *http.Request) {
+func (s *ScoreAPi) AddScore(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	scoDaily := r.Form["scoDaily"][0]
 	subExam := r.Form["subExam"][0]
@@ -27,13 +27,12 @@ func (score *ScoreAPi) AddScore(w http.ResponseWriter, r *http.Request) {
 
 	var stuId, scoId, subId, claId, cla2subId int
 	if scoDaily == "" || subExam == "" || stuName == "" || subName == "" {
-		s := structure_type.Things{"请将信息输入完整", false}
-		render.JSON(w, r, s)
+		st := structure_type.Things{"请将信息输入完整", false}
+		render.JSON(w, r, st)
 		return
 	}
 	//判断学生成绩是否已经存在
-	rows, err := score.db.Model(&data_conn.StudentInfo{}).Where("StuName=?", stuName).Select("StuId,ClaId").Rows()
-
+	rows, err := s.db.Model(&data_conn.StudentInfo{}).Where("StuName=?", stuName).Select("StuId,ClaId").Rows()
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
@@ -43,7 +42,7 @@ func (score *ScoreAPi) AddScore(w http.ResponseWriter, r *http.Request) {
 			log.Printf("err:%s", err)
 		}
 	}
-	rows, err = score.db.Model(&data_conn.Score{}).Where("StuId=?", stuId).Select("ScoId").Rows()
+	rows, err = s.db.Model(&data_conn.Score{}).Where("StuId=?", stuId).Select("ScoId").Rows()
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
@@ -54,12 +53,12 @@ func (score *ScoreAPi) AddScore(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	if scoId != 0 {
-		s := structure_type.Things{"本学生成绩信息已存在", false}
-		render.JSON(w, r, s)
+		st := structure_type.Things{"本学生成绩信息已存在", false}
+		render.JSON(w, r, st)
 		return
 	}
 	//查询课程id
-	rows, err = score.db.Model(&data_conn.Subject{}).Where("SubName=?", subName).Select("SubId").Rows()
+	rows, err = s.db.Model(&data_conn.Subject{}).Where("SubName=?", subName).Select("SubId").Rows()
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
@@ -70,7 +69,7 @@ func (score *ScoreAPi) AddScore(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	//查询课程表id
-	rows, err = score.db.Model(&data_conn.Cla2sub{}).Where("ClaId=? and SubId=?", claId, subId).Select("Cla2subId").Rows()
+	rows, err = s.db.Model(&data_conn.Cla2sub{}).Where("ClaId=? and SubId=?", claId, subId).Select("Cla2subId").Rows()
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
@@ -90,29 +89,29 @@ func (score *ScoreAPi) AddScore(w http.ResponseWriter, r *http.Request) {
 		log.Printf("err:%s", err)
 	}
 	wcoCount := strconv.Itoa(int(sco*0.4 + sub*0.6))
-	err = score.db.Create(&data_conn.Score{ScoDaily: scoDaily, SubExam: subExam, WcoCount: wcoCount,
+	err = s.db.Create(&data_conn.Score{ScoDaily: scoDaily, SubExam: subExam, WcoCount: wcoCount,
 		StuId: stuId, SubId: subId, Cla2subId: cla2subId, ClaId: claId}).Error
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
-	s := structure_type.Things{"添加学生成绩信息成功", true}
-	render.JSON(w, r, s)
+	st := structure_type.Things{"添加学生成绩信息成功", true}
+	render.JSON(w, r, st)
 }
 
-func (score *ScoreAPi) BrowScore(w http.ResponseWriter, r *http.Request) {
+func (s *ScoreAPi) BrowScore(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	className := r.Form["className"][0]
 	subName := r.Form["subName"][0]
 	stuName := r.Form["stuName"][0]
 
-	s := structure_type.ScoreTotal{}
+	st := structure_type.ScoreTotal{}
 	tem := structure_type.Score{}
 
 	var stuId, subId, claId int
 
 	//按班级查询
 	if className != "" {
-		rows, err := score.db.Model(&data_conn.ClassInfo{}).Where("ClassName=?", className).Select("ClassId").Rows()
+		rows, err := s.db.Model(&data_conn.ClassInfo{}).Where("ClassName=?", className).Select("ClassId").Rows()
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -124,7 +123,7 @@ func (score *ScoreAPi) BrowScore(w http.ResponseWriter, r *http.Request) {
 		}
 
 		a := "ScoId,ScoDaily,SubExam,WcoCount,StuId,SubId"
-		rows, err = score.db.Model(&data_conn.Score{}).Where("ClaId=?", claId).Select(a).Rows()
+		rows, err = s.db.Model(&data_conn.Score{}).Where("ClaId=?", claId).Select(a).Rows()
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -134,40 +133,40 @@ func (score *ScoreAPi) BrowScore(w http.ResponseWriter, r *http.Request) {
 				log.Printf("err:%s", err)
 			}
 			tem.ClaName = className
-			s.ScoreList = append(s.ScoreList, tem)
+			st.ScoreList = append(st.ScoreList, tem)
 		}
 
-		for i := 0; i < len(s.ScoreList); i++ {
+		for i := 0; i < len(st.ScoreList); i++ {
 			//查询科目名称
-			rows, err = score.db.Model(&data_conn.Subject{}).Where("SubId=?", s.ScoreList[i].SubName).Select("SubName").Rows()
+			rows, err = s.db.Model(&data_conn.Subject{}).Where("SubId=?", st.ScoreList[i].SubName).Select("SubName").Rows()
 			if err != nil {
 				log.Printf("err:%s", err)
 			}
 			for rows.Next() {
-				err = rows.Scan(&s.ScoreList[i].SubName)
+				err = rows.Scan(&st.ScoreList[i].SubName)
 				if err != nil {
 					log.Printf("err:%s", err)
 				}
 			}
 			//查询学生名字
-			rows, err = score.db.Model(&data_conn.StudentInfo{}).Where("StuId=?", s.ScoreList[i].StuName).Select("StuName").Rows()
+			rows, err = s.db.Model(&data_conn.StudentInfo{}).Where("StuId=?", st.ScoreList[i].StuName).Select("StuName").Rows()
 			if err != nil {
 				log.Printf("err:%s", err)
 			}
 			for rows.Next() {
-				err = rows.Scan(&s.ScoreList[i].StuName)
+				err = rows.Scan(&st.ScoreList[i].StuName)
 				if err != nil {
 					log.Printf("err:%s", err)
 				}
 			}
 		}
-		s.IsSuccess = true
-		render.JSON(w, r, s)
+		st.IsSuccess = true
+		render.JSON(w, r, st)
 	}
 
 	//按科目查询
 	if subName != "" {
-		rows, err := score.db.Model(&data_conn.Subject{}).Where("SubName=?", subName).Select("SubId").Rows()
+		rows, err := s.db.Model(&data_conn.Subject{}).Where("SubName=?", subName).Select("SubId").Rows()
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -179,7 +178,7 @@ func (score *ScoreAPi) BrowScore(w http.ResponseWriter, r *http.Request) {
 		}
 
 		a := "ScoId,ScoDaily,SubExam,WcoCount,StuId,ClaId"
-		rows, err = score.db.Model(&data_conn.Score{}).Where("SubId=?", subId).Select(a).Rows()
+		rows, err = s.db.Model(&data_conn.Score{}).Where("SubId=?", subId).Select(a).Rows()
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -189,40 +188,40 @@ func (score *ScoreAPi) BrowScore(w http.ResponseWriter, r *http.Request) {
 				log.Printf("err:%s", err)
 			}
 			tem.SubName = subName
-			s.ScoreList = append(s.ScoreList, tem)
+			st.ScoreList = append(st.ScoreList, tem)
 		}
 
-		for i := 0; i < len(s.ScoreList); i++ {
+		for i := 0; i < len(st.ScoreList); i++ {
 			//查询班级名称
-			rows, err = score.db.Model(&data_conn.ClassInfo{}).Where("ClassId=?", s.ScoreList[i].ClaName).Select("ClassName").Rows()
+			rows, err = s.db.Model(&data_conn.ClassInfo{}).Where("ClassId=?", st.ScoreList[i].ClaName).Select("ClassName").Rows()
 			if err != nil {
 				log.Printf("err:%s", err)
 			}
 			for rows.Next() {
-				err = rows.Scan(&s.ScoreList[i].ClaName)
+				err = rows.Scan(&st.ScoreList[i].ClaName)
 				if err != nil {
 					log.Printf("err:%s", err)
 				}
 			}
 			//查询学生名字
-			rows, err = score.db.Model(&data_conn.StudentInfo{}).Where("StuId=?", s.ScoreList[i].StuName).Select("StuName").Rows()
+			rows, err = s.db.Model(&data_conn.StudentInfo{}).Where("StuId=?", st.ScoreList[i].StuName).Select("StuName").Rows()
 			if err != nil {
 				log.Printf("err:%s", err)
 			}
 			for rows.Next() {
-				err = rows.Scan(&s.ScoreList[i].StuName)
+				err = rows.Scan(&st.ScoreList[i].StuName)
 				if err != nil {
 					log.Printf("err:%s", err)
 				}
 			}
 		}
-		s.IsSuccess = true
+		st.IsSuccess = true
 		render.JSON(w, r, s)
 	}
 
 	//按学生查询
 	if stuName != "" {
-		rows, err := score.db.Model(&data_conn.StudentInfo{}).Where("StuName=?", stuName).Select("StuId").Rows()
+		rows, err := s.db.Model(&data_conn.StudentInfo{}).Where("StuName=?", stuName).Select("StuId").Rows()
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -234,7 +233,7 @@ func (score *ScoreAPi) BrowScore(w http.ResponseWriter, r *http.Request) {
 		}
 
 		a := "ScoId,ScoDaily,SubExam,WcoCount,SubId,ClaId"
-		rows, err = score.db.Model(&data_conn.Score{}).Where("StuId=?", stuId).Select(a).Rows()
+		rows, err = s.db.Model(&data_conn.Score{}).Where("StuId=?", stuId).Select(a).Rows()
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -244,39 +243,39 @@ func (score *ScoreAPi) BrowScore(w http.ResponseWriter, r *http.Request) {
 				log.Printf("err:%s", err)
 			}
 			tem.StuName = stuName
-			s.ScoreList = append(s.ScoreList, tem)
+			st.ScoreList = append(st.ScoreList, tem)
 		}
 
-		for i := 0; i < len(s.ScoreList); i++ {
+		for i := 0; i < len(st.ScoreList); i++ {
 			//查询班级名称
-			rows, err = score.db.Model(&data_conn.ClassInfo{}).Where("ClassId=?", s.ScoreList[i].ClaName).Select("ClassName").Rows()
+			rows, err = s.db.Model(&data_conn.ClassInfo{}).Where("ClassId=?", st.ScoreList[i].ClaName).Select("ClassName").Rows()
 			if err != nil {
 				log.Printf("err:%s", err)
 			}
 			for rows.Next() {
-				err = rows.Scan(&s.ScoreList[i].ClaName)
+				err = rows.Scan(&st.ScoreList[i].ClaName)
 				if err != nil {
 					log.Printf("err:%s", err)
 				}
 			}
 			//查询科目名字
-			rows, err = score.db.Model(&data_conn.Subject{}).Where("SubId=?", s.ScoreList[i].SubName).Select("SubName").Rows()
+			rows, err = s.db.Model(&data_conn.Subject{}).Where("SubId=?", st.ScoreList[i].SubName).Select("SubName").Rows()
 			if err != nil {
 				log.Printf("err:%s", err)
 			}
 			for rows.Next() {
-				err = rows.Scan(&s.ScoreList[i].SubName)
+				err = rows.Scan(&st.ScoreList[i].SubName)
 				if err != nil {
 					log.Printf("err:%s", err)
 				}
 			}
 		}
-		s.IsSuccess = true
+		st.IsSuccess = true
 		render.JSON(w, r, s)
 	}
 }
 
-func (score *ScoreAPi) UpScore(w http.ResponseWriter, r *http.Request) {
+func (s *ScoreAPi) UpScore(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	scoId := r.Form["scoId"][0]
@@ -291,7 +290,7 @@ func (score *ScoreAPi) UpScore(w http.ResponseWriter, r *http.Request) {
 	//更新平时成绩
 	if scoDaily != "" {
 		//查考试成绩
-		rows, err := score.db.Model(&data_conn.Score{}).Where("ScoId=?", scoId).Select("SubExam").Rows()
+		rows, err := s.db.Model(&data_conn.Score{}).Where("ScoId=?", scoId).Select("SubExam").Rows()
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -312,7 +311,7 @@ func (score *ScoreAPi) UpScore(w http.ResponseWriter, r *http.Request) {
 		}
 		wcoCount := strconv.Itoa(int(sco*0.4 + sub*0.6))
 		//更新平时成绩和总成绩
-		err = score.db.Model(&data_conn.Score{}).Where("ScoId=?", scoId).Update(&data_conn.Score{ScoDaily: scoDaily, WcoCount: wcoCount}).Error
+		err = s.db.Model(&data_conn.Score{}).Where("ScoId=?", scoId).Update(&data_conn.Score{ScoDaily: scoDaily, WcoCount: wcoCount}).Error
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -320,7 +319,7 @@ func (score *ScoreAPi) UpScore(w http.ResponseWriter, r *http.Request) {
 	//更新考试成绩
 	if subExam != "" {
 		//查平时成绩
-		rows, err := score.db.Model(&data_conn.Score{}).Where("ScoId=?", scoId).Select("ScoDaily").Rows()
+		rows, err := s.db.Model(&data_conn.Score{}).Where("ScoId=?", scoId).Select("ScoDaily").Rows()
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -341,14 +340,14 @@ func (score *ScoreAPi) UpScore(w http.ResponseWriter, r *http.Request) {
 		}
 		wcoCount := strconv.Itoa(int(sco*0.4 + sub*0.6))
 		//更新平时成绩和总成绩
-		err = score.db.Model(&data_conn.Score{}).Where("ScoId=?", scoId).Update(&data_conn.Score{SubExam: subExam, WcoCount: wcoCount}).Error
+		err = s.db.Model(&data_conn.Score{}).Where("ScoId=?", scoId).Update(&data_conn.Score{SubExam: subExam, WcoCount: wcoCount}).Error
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
 	}
 	//更新学生
 	if stuName != "" {
-		rows, err := score.db.Model(&data_conn.StudentInfo{}).Where("StuName=?", stuName).Select("StuId,ClaId").Rows()
+		rows, err := s.db.Model(&data_conn.StudentInfo{}).Where("StuName=?", stuName).Select("StuId,ClaId").Rows()
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -359,7 +358,7 @@ func (score *ScoreAPi) UpScore(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		rows, err = score.db.Model(&data_conn.Score{}).Where("ScoId=?", scoId).Select("SubId").Rows()
+		rows, err = s.db.Model(&data_conn.Score{}).Where("ScoId=?", scoId).Select("SubId").Rows()
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -370,7 +369,7 @@ func (score *ScoreAPi) UpScore(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		rows, err = score.db.Model(&data_conn.Cla2sub{}).Where("SubId=? and ClaId ", subId, claId).Select("Cla2subId").Rows()
+		rows, err = s.db.Model(&data_conn.Cla2sub{}).Where("SubId=? and ClaId ", subId, claId).Select("Cla2subId").Rows()
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -381,14 +380,14 @@ func (score *ScoreAPi) UpScore(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		err = score.db.Model(&data_conn.Score{}).Where("ScoId=?", scoId).Update(&data_conn.Score{StuId: stuId, ClaId: claId, Cla2subId: cla2subId}).Error
+		err = s.db.Model(&data_conn.Score{}).Where("ScoId=?", scoId).Update(&data_conn.Score{StuId: stuId, ClaId: claId, Cla2subId: cla2subId}).Error
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
 	}
 	//更新科目
 	if subName != "" {
-		rows, err := score.db.Model(&data_conn.Subject{}).Where("SubName=?", subName).Select("SubId").Rows()
+		rows, err := s.db.Model(&data_conn.Subject{}).Where("SubName=?", subName).Select("SubId").Rows()
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -399,7 +398,7 @@ func (score *ScoreAPi) UpScore(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		rows, err = score.db.Model(&data_conn.Score{}).Where("ScoId=?", scoId).Select("ClaId").Rows()
+		rows, err = s.db.Model(&data_conn.Score{}).Where("ScoId=?", scoId).Select("ClaId").Rows()
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -410,7 +409,7 @@ func (score *ScoreAPi) UpScore(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		rows, err = score.db.Model(&data_conn.Cla2sub{}).Where("SubId=? and ClaId ", subId, claId).Select("Cla2subId").Rows()
+		rows, err = s.db.Model(&data_conn.Cla2sub{}).Where("SubId=? and ClaId ", subId, claId).Select("Cla2subId").Rows()
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
@@ -421,22 +420,22 @@ func (score *ScoreAPi) UpScore(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		err = score.db.Model(&data_conn.Score{}).Where("ScoId=?", scoId).Update(&data_conn.Score{SubId: subId, Cla2subId: cla2subId}).Error
+		err = s.db.Model(&data_conn.Score{}).Where("ScoId=?", scoId).Update(&data_conn.Score{SubId: subId, Cla2subId: cla2subId}).Error
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
 	}
-	s := structure_type.Things{"更新成绩信息成功", true}
-	render.JSON(w, r, s)
+	st := structure_type.Things{"更新成绩信息成功", true}
+	render.JSON(w, r, st)
 }
 
-func (score *ScoreAPi) DelScore(w http.ResponseWriter, r *http.Request) {
+func (s *ScoreAPi) DelScore(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	scoId := r.Form["scoId"][0]
-	err := score.db.Model(&data_conn.Score{}).Where("ScoId=?", scoId).Delete(&data_conn.Score{}).Error
+	err := s.db.Model(&data_conn.Score{}).Where("ScoId=?", scoId).Delete(&data_conn.Score{}).Error
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
-	s := structure_type.Things{"删除学生成绩信息成功", true}
-	render.JSON(w, r, s)
+	st := structure_type.Things{"删除学生成绩信息成功", true}
+	render.JSON(w, r, st)
 }

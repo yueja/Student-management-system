@@ -19,7 +19,7 @@ func MakeDb(db *gorm.DB) *UserAPi {
 	return DB
 }
 
-func (user *UserAPi) RegisterStuUser(w http.ResponseWriter, r *http.Request) {
+func (u *UserAPi) RegisterStuUser(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	userNu := r.Form["stuNu"][0]
@@ -32,7 +32,7 @@ func (user *UserAPi) RegisterStuUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//判断该学号是否已经注册过
-	rows, err := user.db.Table("UserInfos").Where("UserName=?", userNu).Select("UserId").Rows()
+	rows, err := u.db.Table("UserInfos").Where("UserName=?", userNu).Select("UserId").Rows()
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
@@ -49,7 +49,7 @@ func (user *UserAPi) RegisterStuUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//判断学号是否存在
-	rows, err = user.db.Table("StudentInfos").Where("StuNu=?", userNu).Select("Stu_id").Rows()
+	rows, err = u.db.Table("StudentInfos").Where("StuNu=?", userNu).Select("Stu_id").Rows()
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
@@ -65,7 +65,7 @@ func (user *UserAPi) RegisterStuUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = user.db.Create(&data_conn.UserInfo{UserName: userNu, UserPwd: userPwd, RoleName: "学生"}).Error
+	err = u.db.Create(&data_conn.UserInfo{UserName: userNu, UserPwd: userPwd, RoleName: "学生"}).Error
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
@@ -73,7 +73,7 @@ func (user *UserAPi) RegisterStuUser(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, s)
 }
 
-func (user *UserAPi) RegisterTeaUser(w http.ResponseWriter, r *http.Request) {
+func (u *UserAPi) RegisterTeaUser(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	userName := r.Form["tecName"][0]
 	userPwd := r.Form["tecPaw"][0]
@@ -86,7 +86,7 @@ func (user *UserAPi) RegisterTeaUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//判断该教师是否已经注册过
-	rows, err := user.db.Table("UserInfos").Where("UserName=?", userName).Select("UserId").Rows()
+	rows, err := u.db.Table("UserInfos").Where("UserName=?", userName).Select("UserId").Rows()
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
@@ -102,7 +102,7 @@ func (user *UserAPi) RegisterTeaUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err = user.db.Table("TeacherInfos").Where("TecName=?", userName).Select("TecId").Rows()
+	rows, err = u.db.Table("TeacherInfos").Where("TecName=?", userName).Select("TecId").Rows()
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
@@ -118,7 +118,7 @@ func (user *UserAPi) RegisterTeaUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = user.db.Create(&data_conn.UserInfo{UserName: userName, UserPwd: userPwd, RoleName: "教师"}).Error
+	err = u.db.Create(&data_conn.UserInfo{UserName: userName, UserPwd: userPwd, RoleName: "教师"}).Error
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
@@ -126,7 +126,7 @@ func (user *UserAPi) RegisterTeaUser(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, s)
 }
 
-func (user *UserAPi) LoginStuUser(w http.ResponseWriter, r *http.Request) {
+func (u *UserAPi) LoginStuUser(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	userName := r.Form["userName"][0]
 	userPwd := r.Form["userPwd"][0]
@@ -138,7 +138,7 @@ func (user *UserAPi) LoginStuUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := user.db.Model(&data_conn.UserInfo{}).Where("UserName=? and RoleName=?", userName, "学生").Select("UserPwd").Rows()
+	rows, err := u.db.Model(&data_conn.UserInfo{}).Where("UserName=? and RoleName=?", userName, "学生").Select("UserPwd").Rows()
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
@@ -162,7 +162,7 @@ func (user *UserAPi) LoginStuUser(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, s)
 }
 
-func (user *UserAPi) LoginTeaUser(w http.ResponseWriter, r *http.Request) {
+func (u *UserAPi) LoginTeaUser(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	userName := r.Form["userName"][0]
 	userPwd := r.Form["userPwd"][0]
@@ -174,7 +174,7 @@ func (user *UserAPi) LoginTeaUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := user.db.Model(&data_conn.UserInfo{}).Where("UserName=? and RoleName=?", userName, "教师").Select("UserPwd").Rows()
+	rows, err := u.db.Model(&data_conn.UserInfo{}).Where("UserName=? and RoleName=?", userName, "教师").Select("UserPwd").Rows()
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
@@ -198,7 +198,7 @@ func (user *UserAPi) LoginTeaUser(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, s)
 }
 
-func (user *UserAPi) UserPwdModify(w http.ResponseWriter, r *http.Request) {
+func (u *UserAPi) UserPwdModify(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	userName := r.Form["userName"][0]
 	newUserPwd := r.Form["newUserPwd"][0]
@@ -211,7 +211,7 @@ func (user *UserAPi) UserPwdModify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rows, err := user.db.Model(&data_conn.UserInfo{}).Where("UserName=?", userName).Select("UserPwd").Rows()
+	rows, err := u.db.Model(&data_conn.UserInfo{}).Where("UserName=?", userName).Select("UserPwd").Rows()
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
@@ -226,7 +226,7 @@ func (user *UserAPi) UserPwdModify(w http.ResponseWriter, r *http.Request) {
 		render.JSON(w, r, s)
 		return
 	}
-	err = user.db.Model(&data_conn.UserInfo{}).Where("UserName=?", userName).Update(&data_conn.UserInfo{UserPwd: newUserPwd}).Error
+	err = u.db.Model(&data_conn.UserInfo{}).Where("UserName=?", userName).Update(&data_conn.UserInfo{UserPwd: newUserPwd}).Error
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
@@ -234,10 +234,10 @@ func (user *UserAPi) UserPwdModify(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, s)
 }
 
-func (user *UserAPi) BrowUser(w http.ResponseWriter, r *http.Request) {
+func (u *UserAPi) BrowUser(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	roleName := r.Form["roleName"][0]
-	u := structure_type.UserInfoTotal{}
+	s:= structure_type.UserInfoTotal{}
 	tem := structure_type.UserInfo{}
 
 	var rows *sql.Rows
@@ -245,11 +245,11 @@ func (user *UserAPi) BrowUser(w http.ResponseWriter, r *http.Request) {
 
 	//按角色查询
 	if roleName != "" {
-		rows, err = user.db.Model(&data_conn.UserInfo{}).Where("RoleName=?", roleName).Select("UserId,UserName,UserPwd,RoleName").Rows()
+		rows, err = u.db.Model(&data_conn.UserInfo{}).Where("RoleName=?", roleName).Select("UserId,UserName,UserPwd,RoleName").Rows()
 	}
 	//查询全部
 	if roleName == "" {
-		rows, err = user.db.Model(&data_conn.UserInfo{}).Select("UserId,UserName,UserPwd,RoleName").Rows()
+		rows, err = u.db.Model(&data_conn.UserInfo{}).Select("UserId,UserName,UserPwd,RoleName").Rows()
 	}
 	if err != nil {
 		log.Printf("err:%s", err)
@@ -259,17 +259,17 @@ func (user *UserAPi) BrowUser(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Printf("err:%s", err)
 		}
-		u.UserInfoList = append(u.UserInfoList, tem)
+		s.UserInfoList = append(s.UserInfoList, tem)
 	}
-	u.IsSuccess = true
-	render.JSON(w, r, u)
+	s.IsSuccess = true
+	render.JSON(w, r, s)
 }
 
-func (user *UserAPi) DelUser(w http.ResponseWriter, r *http.Request) {
+func (u *UserAPi) DelUser(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	userId := r.Form["userId"][0]
 
-	err := user.db.Model(&data_conn.UserInfo{}).Where("UserId=?", userId).Delete(&data_conn.UserInfo{}).Error
+	err := u.db.Model(&data_conn.UserInfo{}).Where("UserId=?", userId).Delete(&data_conn.UserInfo{}).Error
 	if err != nil {
 		log.Printf("err:%s", err)
 	}
